@@ -24,3 +24,6 @@ logs/
 # Environment / secrets
 .env
 application-local.properties
+
+# Kubernetes secrets
+k8s/secret.yml
