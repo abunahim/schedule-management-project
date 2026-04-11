@@ -1,0 +1,54 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: schedule-app
+  namespace: schedule-management
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: schedule-app
+  template:
+    metadata:
+      labels:
+        app: schedule-app
+    spec:
+      containers:
+        - name: schedule-app
+          image: abunahim/schedule-management:latest
+          ports:
+            - containerPort: 8080
+          env:
+            - name: SPRING_DATASOURCE_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: schedule-config
+                  key: SPRING_DATASOURCE_URL
+            - name: SPRING_DATASOURCE_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: schedule-secret
+                  key: POSTGRES_USER
+            - name: SPRING_DATASOURCE_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: schedule-secret
+                  key: POSTGRES_PASSWORD
+            - name: SPRING_JPA_HIBERNATE_DDL_AUTO
+              valueFrom:
+                configMapKeyRef:
+                  name: schedule-config
+                  key: SPRING_JPA_HIBERNATE_DDL_AUTO
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: schedule-app-service
+  namespace: schedule-management
+spec:
+  selector:
+    app: schedule-app
+  ports:
+    - port: 8080
+      targetPort: 8080
+  type: ClusterIP
