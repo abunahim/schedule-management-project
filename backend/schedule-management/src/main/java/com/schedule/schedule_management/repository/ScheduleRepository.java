@@ -1,9 +1,16 @@
 package com.schedule.schedule_management.repository;
 
 import com.schedule.schedule_management.model.Schedule;
+import com.schedule.schedule_management.model.ScheduleStatus;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
+import java.util.Optional;
+
 @Repository
 public interface ScheduleRepository extends JpaRepository<Schedule, Long> {
+    Page<Schedule> findAll(Pageable pageable);
+    Page<Schedule> findByStatus(ScheduleStatus status, Pageable pageable);
 }

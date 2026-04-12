@@ -1,5 +1,6 @@
 package com.schedule.schedule_management.controller;
 
+import com.schedule.schedule_management.dto.PagedResponseDTO;
 import com.schedule.schedule_management.dto.ScheduleRequestDTO;
 import com.schedule.schedule_management.dto.ScheduleResponseDTO;
 import com.schedule.schedule_management.service.ScheduleService;
@@ -44,6 +45,17 @@ public class ScheduleController {
     public ResponseEntity<ScheduleResponseDTO> updateSchedule(@PathVariable Long id,
                                                               @Valid @RequestBody ScheduleRequestDTO dto) {
         return ResponseEntity.ok(scheduleService.updateSchedule(id, dto));
+    }
+
+    @GetMapping("/paged")
+    @Operation(summary = "Get schedules with pagination and filtering")
+    public ResponseEntity<PagedResponseDTO<ScheduleResponseDTO>> getSchedulesPaged(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(required = false) String status,
+            @RequestParam(defaultValue = "startTime") String sortBy,
+            @RequestParam(defaultValue = "asc") String sortDir) {
+        return ResponseEntity.ok(scheduleService.getSchedulesPaged(page, size, status, sortBy, sortDir));
     }
 
     @DeleteMapping("/{id}")
