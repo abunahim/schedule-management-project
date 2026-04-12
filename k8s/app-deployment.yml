@@ -19,6 +19,11 @@ spec:
           ports:
             - containerPort: 8080
           env:
+            - name: REDIS_HOST
+              valueFrom:
+                configMapKeyRef:
+                  name: schedule-config
+                  key: REDIS_HOST
             - name: SPRING_PROFILES_ACTIVE
               valueFrom:
                 configMapKeyRef:

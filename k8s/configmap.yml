@@ -7,3 +7,4 @@ data:
   SPRING_PROFILES_ACTIVE: prod
   SPRING_DATASOURCE_URL: jdbc:postgresql://postgres-service:5432/schedule_db
   SPRING_JPA_HIBERNATE_DDL_AUTO: update
+  REDIS_HOST: redis-service

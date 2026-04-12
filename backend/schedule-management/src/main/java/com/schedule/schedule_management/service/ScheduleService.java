@@ -1,5 +1,7 @@
 package com.schedule.schedule_management.service;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.schedule.schedule_management.dto.ScheduleMapper;
 import com.schedule.schedule_management.dto.ScheduleRequestDTO;
 import com.schedule.schedule_management.dto.ScheduleResponseDTO;
@@ -7,33 +9,66 @@ import com.schedule.schedule_management.exception.ScheduleNotFoundException;
 import com.schedule.schedule_management.model.Schedule;
 import com.schedule.schedule_management.repository.ScheduleRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class ScheduleService {
 
     private final ScheduleRepository scheduleRepository;
+    private final RedisTemplate<String, Object> redisTemplate;
+
+    private static final String CACHE_KEY_ALL = "schedules:all";
+    private static final String CACHE_KEY_PREFIX = "schedules:";
+    private static final long CACHE_TTL = 10;
+
+    private final ObjectMapper objectMapper = new ObjectMapper()
+            .registerModule(new JavaTimeModule());
 
     public ScheduleResponseDTO createSchedule(ScheduleRequestDTO dto) {
         Schedule schedule = ScheduleMapper.toEntity(dto);
-        return ScheduleMapper.toResponseDTO(scheduleRepository.save(schedule));
+        ScheduleResponseDTO response = ScheduleMapper.toResponseDTO(scheduleRepository.save(schedule));
+        evictCache(response.getId());
+        return response;
     }
 
     public List<ScheduleResponseDTO> getAllSchedules() {
-        return scheduleRepository.findAll()
+        Object cached = redisTemplate.opsForValue().get(CACHE_KEY_ALL);
+        if (cached != null) {
+            log.info("Cache HIT for all schedules");
+            return ((List<?>) cached).stream()
+                    .map(item -> objectMapper.convertValue(item, ScheduleResponseDTO.class))
+                    .collect(Collectors.toList());
+        }
+        log.info("Cache MISS for all schedules");
+        List<ScheduleResponseDTO> result = scheduleRepository.findAll()
                 .stream()
                 .map(ScheduleMapper::toResponseDTO)
                 .collect(Collectors.toList());
+        redisTemplate.opsForValue().set(CACHE_KEY_ALL, result, CACHE_TTL, TimeUnit.MINUTES);
+        return result;
     }
 
     public ScheduleResponseDTO getScheduleById(Long id) {
-        return scheduleRepository.findById(id)
+        String key = CACHE_KEY_PREFIX + id;
+        Object cached = redisTemplate.opsForValue().get(key);
+        if (cached != null) {
+            log.info("Cache HIT for schedule id: {}", id);
+            return objectMapper.convertValue(cached, ScheduleResponseDTO.class);
+        }
+        log.info("Cache MISS for schedule id: {}", id);
+        ScheduleResponseDTO response = scheduleRepository.findById(id)
                 .map(ScheduleMapper::toResponseDTO)
                 .orElseThrow(() -> new ScheduleNotFoundException(id));
+        redisTemplate.opsForValue().set(key, response, CACHE_TTL, TimeUnit.MINUTES);
+        return response;
     }
 
     public ScheduleResponseDTO updateSchedule(Long id, ScheduleRequestDTO dto) {
@@ -44,12 +79,21 @@ public class ScheduleService {
         existing.setStartTime(dto.getStartTime());
         existing.setEndTime(dto.getEndTime());
         existing.setStatus(dto.getStatus());
-        return ScheduleMapper.toResponseDTO(scheduleRepository.save(existing));
+        ScheduleResponseDTO response = ScheduleMapper.toResponseDTO(scheduleRepository.save(existing));
+        evictCache(id);
+        return response;
     }
 
     public void deleteSchedule(Long id) {
         scheduleRepository.findById(id)
                 .orElseThrow(() -> new ScheduleNotFoundException(id));
         scheduleRepository.deleteById(id);
+        evictCache(id);
+    }
+
+    private void evictCache(Long id) {
+        redisTemplate.delete(CACHE_KEY_PREFIX + id);
+        redisTemplate.delete(CACHE_KEY_ALL);
+        log.info("Cache evicted for schedule id: {}", id);
     }
 }
