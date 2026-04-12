@@ -13,6 +13,8 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.ValueOperations;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -27,6 +29,12 @@ class ScheduleServiceTest {
 
     @Mock
     private ScheduleRepository scheduleRepository;
+
+    @Mock
+    private RedisTemplate<String, Object> redisTemplate;
+
+    @Mock
+    private ValueOperations<String, Object> valueOperations;
 
     @InjectMocks
     private ScheduleService scheduleService;
@@ -53,6 +61,8 @@ class ScheduleServiceTest {
                 .endTime(LocalDateTime.of(2026, 4, 15, 11, 0))
                 .status(ScheduleStatus.SCHEDULED)
                 .build();
+
+        lenient().when(redisTemplate.opsForValue()).thenReturn(valueOperations);
     }
 
     @Test
@@ -68,6 +78,7 @@ class ScheduleServiceTest {
 
     @Test
     void getAllSchedules_shouldReturnList() {
+        when(valueOperations.get(any())).thenReturn(null);
         when(scheduleRepository.findAll()).thenReturn(List.of(schedule));
 
         List<ScheduleResponseDTO> result = scheduleService.getAllSchedules();
@@ -78,6 +89,7 @@ class ScheduleServiceTest {
 
     @Test
     void getScheduleById_shouldReturnResponseDTO() {
+        when(valueOperations.get(any())).thenReturn(null);
         when(scheduleRepository.findById(1L)).thenReturn(Optional.of(schedule));
 
         ScheduleResponseDTO result = scheduleService.getScheduleById(1L);
@@ -88,6 +100,7 @@ class ScheduleServiceTest {
 
     @Test
     void getScheduleById_shouldThrowWhenNotFound() {
+        when(valueOperations.get(any())).thenReturn(null);
         when(scheduleRepository.findById(99L)).thenReturn(Optional.empty());
 
         assertThatThrownBy(() -> scheduleService.getScheduleById(99L))
