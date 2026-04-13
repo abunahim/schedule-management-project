@@ -95,6 +95,17 @@
 			<version>0.12.6</version>
 			<scope>runtime</scope>
 		</dependency>
+		<!-- Actuator -->
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-actuator</artifactId>
+		</dependency>
+
+		<!-- Micrometer Prometheus -->
+		<dependency>
+			<groupId>io.micrometer</groupId>
+			<artifactId>micrometer-registry-prometheus</artifactId>
+		</dependency>
 	</dependencies>
 
 	<build>
