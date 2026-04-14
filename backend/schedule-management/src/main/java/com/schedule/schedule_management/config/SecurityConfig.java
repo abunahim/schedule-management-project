@@ -1,6 +1,7 @@
 package com.schedule.schedule_management.config;
 
 import com.schedule.schedule_management.security.JwtAuthFilter;
+import com.schedule.schedule_management.security.RateLimitFilter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -27,6 +28,11 @@ public class SecurityConfig {
     private final UserDetailsService userDetailsService;
 
     @Bean
+    public RateLimitFilter rateLimitFilter() {
+        return new RateLimitFilter();
+    }
+
+    @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
                 .csrf(AbstractHttpConfigurer::disable)
@@ -45,6 +51,7 @@ public class SecurityConfig {
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 )
                 .authenticationProvider(authenticationProvider())
+                .addFilterBefore(rateLimitFilter(), UsernamePasswordAuthenticationFilter.class)
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
