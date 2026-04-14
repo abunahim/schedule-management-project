@@ -43,6 +43,8 @@ services:
       SPRING_DATA_REDIS_HOST: redis
       SPRING_DATA_REDIS_PORT: 6379
       JWT_SECRET: schedulemanagementprojectsecretkey12345678901234567890
+      MAIL_USERNAME: abunahim09@gmail.com
+      MAIL_PASSWORD: xwry ssgl psbj spix
     depends_on:
       postgres:
         condition: service_healthy

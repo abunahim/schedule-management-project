@@ -7,6 +7,7 @@ import com.schedule.schedule_management.model.ScheduleStatus;
 import com.schedule.schedule_management.model.User;
 import com.schedule.schedule_management.repository.UserRepository;
 import com.schedule.schedule_management.security.JwtUtil;
+import com.schedule.schedule_management.service.EmailService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,6 +17,7 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.ValueOperations;
 import org.springframework.http.MediaType;
+import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
@@ -52,6 +54,12 @@ class ScheduleControllerIntegrationTest {
 
     @MockBean
     private ValueOperations<String, Object> valueOperations;
+
+    @MockBean
+    private JavaMailSender mailSender;
+
+    @MockBean
+    private EmailService emailService;
 
     @BeforeEach
     void setUp() {

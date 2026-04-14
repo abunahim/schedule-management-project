@@ -6,6 +6,7 @@ import com.schedule.schedule_management.exception.ScheduleNotFoundException;
 import com.schedule.schedule_management.model.Schedule;
 import com.schedule.schedule_management.model.ScheduleStatus;
 import com.schedule.schedule_management.repository.ScheduleRepository;
+import com.schedule.schedule_management.service.EmailService;
 import com.schedule.schedule_management.service.ScheduleService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -35,6 +36,9 @@ class ScheduleServiceTest {
 
     @Mock
     private ValueOperations<String, Object> valueOperations;
+
+    @Mock
+    private EmailService emailService;
 
     @InjectMocks
     private ScheduleService scheduleService;

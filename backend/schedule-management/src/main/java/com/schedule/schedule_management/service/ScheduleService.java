@@ -8,16 +8,16 @@ import com.schedule.schedule_management.dto.ScheduleRequestDTO;
 import com.schedule.schedule_management.dto.ScheduleResponseDTO;
 import com.schedule.schedule_management.exception.ScheduleNotFoundException;
 import com.schedule.schedule_management.model.Schedule;
+import com.schedule.schedule_management.model.ScheduleStatus;
 import com.schedule.schedule_management.repository.ScheduleRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.stereotype.Service;
-import com.schedule.schedule_management.model.ScheduleStatus;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.concurrent.TimeUnit;
@@ -30,6 +30,7 @@ public class ScheduleService {
 
     private final ScheduleRepository scheduleRepository;
     private final RedisTemplate<String, Object> redisTemplate;
+    private final EmailService emailService;
 
     private static final String CACHE_KEY_ALL = "schedules:all";
     private static final String CACHE_KEY_PREFIX = "schedules:";
@@ -42,6 +43,7 @@ public class ScheduleService {
         Schedule schedule = ScheduleMapper.toEntity(dto);
         ScheduleResponseDTO response = ScheduleMapper.toResponseDTO(scheduleRepository.save(schedule));
         evictCache(response.getId());
+        emailService.sendScheduleCreatedEmail(response);
         return response;
     }
 
@@ -87,14 +89,16 @@ public class ScheduleService {
         existing.setStatus(dto.getStatus());
         ScheduleResponseDTO response = ScheduleMapper.toResponseDTO(scheduleRepository.save(existing));
         evictCache(id);
+        emailService.sendScheduleUpdatedEmail(response);
         return response;
     }
 
     public void deleteSchedule(Long id) {
-        scheduleRepository.findById(id)
+        Schedule schedule = scheduleRepository.findById(id)
                 .orElseThrow(() -> new ScheduleNotFoundException(id));
         scheduleRepository.deleteById(id);
         evictCache(id);
+        emailService.sendScheduleDeletedEmail(id, schedule.getTitle());
     }
 
     public PagedResponseDTO<ScheduleResponseDTO> getSchedulesPaged(
