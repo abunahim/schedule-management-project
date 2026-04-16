@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import ScheduleForm from '../components/ScheduleForm';
 import ScheduleList from '../components/ScheduleList';
 import {
@@ -13,6 +14,8 @@ export default function Home() {
   const [editingSchedule, setEditingSchedule] = useState(null);
   const [showForm, setShowForm] = useState(false);
   const [error, setError] = useState(null);
+  const navigate = useNavigate();
+  const username = localStorage.getItem('username');
 
   useEffect(() => {
     fetchSchedules();
@@ -24,7 +27,11 @@ export default function Home() {
       setSchedules(res.data);
       setError(null);
     } catch (err) {
-      setError('Failed to load schedules. Is the backend running?');
+      if (err.response?.status === 401 || err.response?.status === 403) {
+        handleLogout();
+      } else {
+        setError('Failed to load schedules.');
+      }
     }
   };
 
@@ -63,19 +70,28 @@ export default function Home() {
     setShowForm(false);
   };
 
+  const handleLogout = () => {
+    localStorage.removeItem('token');
+    localStorage.removeItem('username');
+    navigate('/login');
+  };
+
   return (
     <div className="container">
       <header className="app-header">
         <h1>🗓️ Schedule Management</h1>
-        <button
-          className="btn-primary"
-          onClick={() => {
+        <div className="header-right">
+          <span className="username-badge">👤 {username}</span>
+          <button className="btn-primary" onClick={() => {
             setShowForm(!showForm);
             setEditingSchedule(null);
-          }}
-        >
-          {showForm ? 'Cancel' : '+ New Schedule'}
-        </button>
+          }}>
+            {showForm ? 'Cancel' : '+ New Schedule'}
+          </button>
+          <button className="btn-logout" onClick={handleLogout}>
+            Logout
+          </button>
+        </div>
       </header>
 
       {error && <div className="error-banner">{error}</div>}
