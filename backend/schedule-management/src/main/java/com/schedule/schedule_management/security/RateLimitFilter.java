@@ -28,13 +28,21 @@ public class RateLimitFilter extends OncePerRequestFilter {
         return buckets.computeIfAbsent(ip, k -> createNewBucket());
     }
 
+    private String getClientIp(HttpServletRequest request) {
+        String xForwardedFor = request.getHeader("X-Forwarded-For");
+        if (xForwardedFor != null && !xForwardedFor.isEmpty()) {
+            return xForwardedFor.split(",")[0].trim();
+        }
+        return request.getRemoteAddr();
+    }
+
     @Override
     protected void doFilterInternal(HttpServletRequest request,
                                     HttpServletResponse response,
                                     FilterChain filterChain)
             throws ServletException, IOException {
 
-        String ip = request.getRemoteAddr();
+        String ip = getClientIp(request);
         Bucket bucket = getBucket(ip);
 
         if (bucket.tryConsume(1)) {
