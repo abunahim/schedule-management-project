@@ -5,6 +5,7 @@ import com.schedule.schedule_management.model.ScheduleStatus;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDateTime;
@@ -16,4 +17,7 @@ public interface ScheduleRepository extends JpaRepository<Schedule, Long> {
     Page<Schedule> findByStatus(ScheduleStatus status, Pageable pageable);
     List<Schedule> findByStatus(ScheduleStatus status);
     List<Schedule> findByStatusInAndEndTimeBefore(List<ScheduleStatus> statuses, LocalDateTime time);
+
+    @Query("SELECT s.status, COUNT(s) FROM Schedule s GROUP BY s.status")
+    List<Object[]> countByStatus();
 }

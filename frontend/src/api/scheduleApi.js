@@ -19,6 +19,7 @@ api.interceptors.request.use((config) => {
 // Auth
 export const register = (data) => api.post('/auth/register', data);
 export const login = (data) => api.post('/auth/login', data);
+export const getStats = () => api.get('/schedules/stats');
 
 // Schedules
 export const getAllSchedules = () => api.get('/schedules');

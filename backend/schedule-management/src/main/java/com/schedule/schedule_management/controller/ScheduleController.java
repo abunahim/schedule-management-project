@@ -13,6 +13,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/schedules")
@@ -38,6 +39,12 @@ public class ScheduleController {
     @Operation(summary = "Get a schedule by ID")
     public ResponseEntity<ScheduleResponseDTO> getScheduleById(@PathVariable Long id) {
         return ResponseEntity.ok(scheduleService.getScheduleById(id));
+    }
+
+    @GetMapping("/stats")
+    @Operation(summary = "Get schedule stats by status")
+    public ResponseEntity<Map<String, Long>> getStats() {
+        return ResponseEntity.ok(scheduleService.getStats());
     }
 
     @PutMapping("/{id}")
