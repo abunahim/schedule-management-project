@@ -2,6 +2,8 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import ScheduleForm from '../components/ScheduleForm';
 import ScheduleList from '../components/ScheduleList';
+import StatsBar from '../components/StatsBar';
+import { getStats } from '../api/scheduleApi';
 import {
   createSchedule,
   updateSchedule,
@@ -22,12 +24,14 @@ export default function Home() {
   const [sortDir, setSortDir] = useState('asc');
   const [totalPages, setTotalPages] = useState(0);
   const [totalElements, setTotalElements] = useState(0);
+  const [stats, setStats] = useState(null);
 
   const navigate = useNavigate();
   const username = localStorage.getItem('username');
 
   useEffect(() => {
     fetchSchedules();
+    fetchStats();
   }, [page, size, status, sortBy, sortDir]);
 
   const fetchSchedules = async () => {
@@ -52,6 +56,7 @@ export default function Home() {
       setShowForm(false);
       setPage(0);
       fetchSchedules();
+      fetchStats();
     } catch (err) {
       setError('Failed to create schedule.');
     }
@@ -62,6 +67,7 @@ export default function Home() {
       await updateSchedule(editingSchedule.id, data);
       setEditingSchedule(null);
       fetchSchedules();
+      fetchStats();
     } catch (err) {
       setError('Failed to update schedule.');
     }
@@ -72,6 +78,7 @@ export default function Home() {
     try {
       await deleteSchedule(id);
       fetchSchedules();
+      fetchStats();
     } catch (err) {
       setError('Failed to delete schedule.');
     }
@@ -86,6 +93,15 @@ export default function Home() {
     localStorage.removeItem('token');
     localStorage.removeItem('username');
     navigate('/login');
+  };
+
+  const fetchStats = async () => {
+    try {
+      const res = await getStats();
+      setStats(res.data);
+    } catch (err) {
+      console.error('Failed to load stats');
+    }
   };
 
   return (
@@ -123,6 +139,8 @@ export default function Home() {
           />
         </div>
       )}
+
+      <StatsBar stats={stats} />
 
       {/* Filters & Sort */}
       <div className="filters-bar">

@@ -19,7 +19,9 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
@@ -133,5 +135,20 @@ public class ScheduleService {
         redisTemplate.delete(CACHE_KEY_PREFIX + id);
         redisTemplate.delete(CACHE_KEY_ALL);
         log.info("Cache evicted for schedule id: {}", id);
+    }
+
+    public Map<String, Long> getStats() {
+        Map<String, Long> stats = new HashMap<>();
+        stats.put("SCHEDULED", 0L);
+        stats.put("IN_PROGRESS", 0L);
+        stats.put("COMPLETED", 0L);
+        stats.put("CANCELLED", 0L);
+
+        scheduleRepository.countByStatus().forEach(row -> {
+            stats.put(row[0].toString(), (Long) row[1]);
+        });
+
+        stats.put("TOTAL", stats.values().stream().mapToLong(Long::longValue).sum());
+        return stats;
     }
 }
