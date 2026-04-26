@@ -45,4 +45,5 @@ jobs:
             ${{ runner.os }}-maven-
 
       - name: Run tests
+        working-directory: backend/schedule-management
         run: mvn test -Dspring.profiles.active=test

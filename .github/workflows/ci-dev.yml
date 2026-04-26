@@ -44,9 +44,11 @@ jobs:
             ${{ runner.os }}-maven-
 
       - name: Run tests
+        working-directory: backend/schedule-management
         run: mvn test -Dspring.profiles.active=test
 
       - name: Build JAR (skip tests — already ran)
+        working-directory: backend/schedule-management
         run: mvn package -DskipTests
 
       - name: Log in to Docker Hub
