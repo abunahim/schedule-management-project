@@ -64,7 +64,7 @@ jobs:
       - name: Build & Push prod image
         uses: docker/build-push-action@v5
         with:
-          context: .
+          context: ./backend/schedule-management
           push: true
           tags: |
             abunahim/schedule-management:latest
